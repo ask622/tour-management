@@ -31,10 +31,6 @@ Desktop.ini
 dist/
 build/
 dump/
-<<<<<<< HEAD
-=======
-
->>>>>>> 230289798418a52e616ffa3631fa36e93e9e7af3
 .cache/
 *.tgz
 

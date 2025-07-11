@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import "../styles/tour-details.css";
 import { Container, Row, Col, Form, ListGroup } from "reactstrap";
 import { useParams } from "react-router-dom";
@@ -8,18 +8,21 @@ import Booking from "../components/Booking/Booking";
 import Newsletter from "../shared/Newsletter";
 import { BASE_URL } from "../utils/config";
 import useFetch from "./../hooks/useFatch";
+import { AuthContext } from "./../context/AuthConstext";
 
 const TourDetails = () => {
   const { id } = useParams();
   const reviewMsgRef = useRef("");
   const [tourRating, setTourRating] = useState(null);
+  const { user } = useContext(AuthContext);
 
   const { data: tour, loading, error } = useFetch(`${BASE_URL}/api/v1/tours/${id}`);
-  console.log("Tour Data:", tour); // Debug log
+  const [allRatings, setAllRatings] = useState([]);
 
   useEffect(() => {
-    if (tour) {
-      window.scrollTo(0, 0); // Scroll to top only if tour is available
+    if (tour && tour.ratings) {
+      setAllRatings(tour.ratings);
+      window.scrollTo(0, 0);
     }
   }, [tour]);
 
@@ -27,22 +30,61 @@ const TourDetails = () => {
     return <h2>Tour not found</h2>;
   }
 
-  const { image, title, desc, price, ratings = [], city, distance, maxGroupSize } = tour;
-  const { totalRating, avgRating } = calculateAvgRating(ratings);
-  // const options = { day: "numeric", month: "long", year: "numeric" };
+  const { image, title, desc, price, city, distance, maxGroupSize } = tour;
+  const { totalRating, avgRating } = calculateAvgRating(allRatings);
 
-  const submitHandler = (e) => {
+  const submitHandler = async e => {
     e.preventDefault();
     const reviewText = reviewMsgRef.current.value;
 
+    // Login check
+    if (!user || user === "undefined" || user === null) {
+      alert("Please log in to submit a review!");
+      return;
+    }
+
+    // Rating check
     if (!tourRating) {
       alert("Please select a star rating!");
       return;
     }
 
-    alert(`Review Submitted:\n"${reviewText}"\nRating: ${tourRating} Stars`);
-    reviewMsgRef.current.value = ""; // Clear input after submission
-    setTourRating(null); // Reset rating selection
+    try {
+      const reviewObj = {
+        username: user.username,
+        reviewText,
+        rating: tourRating
+      };
+
+      const res = await fetch(`${BASE_URL}/api/v1/tours/${id}/review`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(reviewObj)
+      });
+
+      // Check if response is JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        alert("Server error: " + text);
+        return;
+      }
+
+      const result = await res.json();
+      if (!res.ok) {
+        return alert(result.message);
+      }
+      alert("Review submitted successfully!");
+
+      setAllRatings(prev => [...prev, reviewObj]);
+      reviewMsgRef.current.value = "";
+      setTourRating(null);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   return (
@@ -62,7 +104,7 @@ const TourDetails = () => {
                       <span className="tour__rating d-flex align-items-center gap-1">
                         <i className="ri-star-fill" style={{ color: "var(--secondary-color)" }}></i>
                         {avgRating !== 0 && avgRating}
-                        {totalRating === 0 ? "Not Rated" : <span>({ratings?.length})</span>}
+                        {totalRating === 0 ? "Not Rated" : <span>({allRatings?.length})</span>}
                       </span>
                       <span>
                         <i className="ri-map-pin-user-fill"></i> {city}
@@ -84,11 +126,11 @@ const TourDetails = () => {
                   </div>
 
                   <div className="tour__reviews mt-4">
-                    <h4>Reviews {ratings?.length } </h4>
+                    <h4>Reviews {allRatings?.length}</h4>
                     <Form onSubmit={submitHandler}>
                       <div className="d-flex align-items-center gap-3 mb-4 rating__group">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <span key={star} onClick={() => setTourRating(star)}>
+                          <span key={star} onClick={() => setTourRating(star)} style={{ cursor: "pointer", color: tourRating === star ? "orange" : "inherit" }}>
                             {star} <i className="ri-star-s-fill"></i>
                           </span>
                         ))}
@@ -107,20 +149,20 @@ const TourDetails = () => {
                     </Form>
 
                     <ListGroup className="user__reviews">
-                      {ratings?.length > 0 ? (
-                        ratings.map((rating, index) => (
+                      {allRatings.length > 0 ? (
+                        allRatings.map((review, index) => (
                           <div className="review__item" key={index}>
                             <img src={avatar} alt="User Avatar" />
                             <div className="w-100">
                               <div className="d-flex align-items-center justify-content-between">
                                 <div>
-                                  <p>{rating.user}</p>
+                                  <p>{review.username}</p>
                                 </div>
                                 <span className="d-flex align-items-center">
-                                  {rating.rating} <i className="ri-star-s-fill"></i>
+                                  {review.rating} <i className="ri-star-s-fill"></i>
                                 </span>
                               </div>
-                              <h6>Great Experience!</h6>
+                              <h6>{review.reviewText}</h6>
                             </div>
                           </div>
                         ))

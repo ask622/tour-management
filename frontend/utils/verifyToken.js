@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+// config.js
+export const BASE_URL = "https://tour-management-fvd6.onrender.com";
 
 export const verifyToken = (req, res, next) => {
   const token = req.cookies.access_token; // Token from cookies

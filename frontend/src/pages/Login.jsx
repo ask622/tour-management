@@ -6,11 +6,11 @@ import loginImg from '../assets/images/login.png';
 import userIcon from '../assets/images/user.png';
 
 import { AuthContext } from './../context/AuthConstext';
-import { BASE_URL } from './../utils/config';
+import { BASE_URL } from './../utils/config'; // should be correctly set
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
-    email: '',        // ✅ initialized as empty strings
+    email: '',
     password: ''
   });
 
@@ -29,22 +29,19 @@ const Login = () => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
-      console.log('Sending credentials:', credentials); // ✅ Debug log
-
       const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
+        credentials: 'include', // Only if you’re using cookies/sessions
         body: JSON.stringify(credentials)
       });
 
       const result = await res.json();
 
       if (res.ok) {
-        alert(result.message);
-        console.log(result.data);
+        alert(result.message || "Login successful");
         dispatch({ type: 'LOGIN_SUCCESS', payload: result.data });
         navigate('/');
       } else {
@@ -52,7 +49,7 @@ const Login = () => {
         dispatch({ type: 'LOGIN_FAILURE', payload: result.message });
       }
     } catch (err) {
-      alert(err.message || 'Something went wrong');
+      alert('Network error or server not responding');
       dispatch({ type: 'LOGIN_FAILURE', payload: err.message });
     }
   };

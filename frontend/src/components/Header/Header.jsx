@@ -1,57 +1,47 @@
-import React, { useRef, useEffect, useState,useContext } from "react";
+import React, { useRef, useEffect, useState, useContext } from "react";
 import { Container, Row, Button } from "reactstrap";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo2.png";
-import './header.css';
-import {AuthContext} from "./../../context/AuthConstext"
+import "./header.css";
+import { AuthContext } from "../../context/AuthConstext";
 
 const nav__links = [
-  {
-    path: "/home",
-    display: "Home",
-  },
-  {
-    path: "/about",
-    display: "About",
-  },
-  {
-    path: "/tours",
-    display: "Tours",
-  },
+  { path: "/home", display: "Home" },
+  { path: "/about", display: "About" },
+  { path: "/tours", display: "Tours" },
 ];
 
 const Header = () => {
   const headerRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate()
-  const {user, dispatch} = useContext(AuthContext)
+  const navigate = useNavigate();
+  const { user, dispatch } = useContext(AuthContext);
 
-  const logout = () =>{
-    dispatch({type:'LOGOUT'})
-    navigate('/')
-  }
-
-  const stickyHeaderFunc = () => {
-    window.addEventListener('scroll', () => {
-      if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) {
-        headerRef.current.classList.add('sticky__header');
-      } else {
-        headerRef.current.classList.remove('sticky__header');
-      }
-    });
+  const logout = () => {
+    dispatch({ type: "LOGOUT" });
+    navigate("/");
   };
 
+  // Sticky header logic
   useEffect(() => {
-    stickyHeaderFunc();
-
-    // Cleanup function to remove the event listener when component unmounts
-    return () => {
-      window.removeEventListener('scroll', stickyHeaderFunc);
+    const handleScroll = () => {
+      if (window.scrollY > 80) {
+        headerRef.current.classList.add("sticky__header");
+      } else {
+        headerRef.current.classList.remove("sticky__header");
+      }
     };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -59,30 +49,35 @@ const Header = () => {
       <Container>
         <Row>
           <div className="nav__wrapper d-flex align-items-center justify-content-between">
-            {/* =================logo================ */}
+            {/* Logo */}
             <div className="logo">
               <img src={logo} alt="Logo" />
             </div>
-            {/* =================logo end================ */}
 
-            {/* =================menu start================ */}
-            <div className={`navigation ${isMobileMenuOpen ? 'active' : ''}`}>
-              <ul className="menu d-flex align-items-center gap-5">
+            {/* Navigation */}
+            <div className={`navigation ${isMobileMenuOpen ? "active" : ""}`}>
+              <ul className={`menu ${isMobileMenuOpen ? "active" : ""}`}>
                 {nav__links.map((item, index) => (
                   <li className="nav__item" key={index}>
-                    <NavLink to={item.path} className={(navClass) => (navClass.isActive ? "active__link" : "")}>
+                    <NavLink
+                      to={item.path}
+                      onClick={closeMobileMenu} // ✅ closes menu on link click
+                      className={({ isActive }) =>
+                        isActive ? "active__link" : ""
+                      }
+                    >
                       {item.display}
                     </NavLink>
                   </li>
                 ))}
               </ul>
             </div>
-            {/* =================menu end ================ */}
 
-            <div className="nav__right align-items-center gap-5">
-              <div className="nav__btns align-items-center gap-4">
+            {/* Right Side */}
+            <div className="nav__right d-flex align-items-center gap-4">
+              <div className="nav__btns d-flex align-items-center gap-3">
                 {user ? (
-                  <div className="d-flex align-items-center gap-3">
+                  <div className="d-flex align-items-center gap-2">
                     <h6 className="mb-0">{user.username}</h6>
                     <Button className="btn btn-dark" onClick={logout}>
                       Logout
@@ -100,7 +95,7 @@ const Header = () => {
                 )}
               </div>
 
-              {/* Mobile Menu Toggle */}
+              {/* Mobile Toggle Icon */}
               <span className="mobile__menu" onClick={toggleMobileMenu}>
                 <i className="ri-menu-line"></i>
               </span>

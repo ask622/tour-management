@@ -8,7 +8,7 @@ import { verifyUser, verifyAdmin } from '../utils/verifyToken.js';
 //update user
 router.put('/:id',verifyUser, updateUser);
 //delete user
-router.delete('/:id',verifyUser, deleteUser);
+router.delete('/:id', deleteUser);
 
 //get single user
 router.get('/:id',verifyUser, getSingleUser);

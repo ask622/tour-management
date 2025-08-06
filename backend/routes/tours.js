@@ -2,6 +2,7 @@ import express from 'express';
 import { createTour, deleteTour, updateTour ,getAllTours ,getSingleTour, getTourBySearch,getFeaturedTour, getTourCount} from '../controllers/tourController.js';
 import { verifyAdmin } from '../utils/verifyToken.js';
 
+
 const router = express.Router();
 
 //  POST request to create a new tour

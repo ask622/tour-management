@@ -8,6 +8,7 @@ import Register from './../pages/Register';
 import SearchResult from './../pages/SearchResult';
 import Thankyou from '../pages/Thankyou';
 import About from './../pages/about'
+import Gallery from '../components/image-gallery/MasonryImageGallery';
 
 const Routers = () => {
   return (
@@ -21,8 +22,11 @@ const Routers = () => {
     <Route path='/login' element={<Login/>} />
     <Route path='/register' element={<Register/>} />
     <Route path='/Thank-you' element={<Thankyou/>} />
-
+    <Route path='/Gallery' element={<Gallery/>} />
+    
+    {/* Search Result Route */}
     <Route path='/tours/search' element={<SearchResult/>} />
+
     </Routes>
   )
 }

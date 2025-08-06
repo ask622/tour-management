@@ -34,7 +34,7 @@ const places = [
     lat: 29.3919,
     lng: 79.4542,
     type: "mountain",
-    img: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Nainital_Lake.jpg",
+    img: "https://revolvingcompass.com/wp/wp-content/uploads/2023/11/Nainital_11.jpg",
     desc: "A beautiful hill station with a famous lake.",
   },
   {
@@ -42,7 +42,7 @@ const places = [
     lat: 30.459,
     lng: 78.0642,
     type: "mountain",
-    img: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Mussoorie_Hills.jpg",
+    img: "https://clubmahindra.gumlet.io/blog/media/section_images/shuttersto-65eea6c9f8abbd6.jpg?w=376&dpr=2.6",
     desc: "The Queen of Hills, a perfect getaway.",
   },
   {
@@ -50,7 +50,7 @@ const places = [
     lat: 30.0869,
     lng: 78.2676,
     type: "river",
-    img: "https://upload.wikimedia.org/wikipedia/commons/7/72/Lakshman_Jhula_Rishikesh.jpg",
+    img: "https://s7ap1.scene7.com/is/image/incredibleindia/laxman%20jhula-rishikesh-uttrakhand-hero?qlt=82&ts=1726646312953",
     desc: "The yoga capital of the world.",
   },
   {
@@ -66,7 +66,7 @@ const places = [
     lat: 30.7352,
     lng: 79.0669,
     type: "temple",
-    img: "https://upload.wikimedia.org/wikipedia/commons/4/4b/Kedarnath_Temple.jpg",
+    img: "https://www.uttarakhandtourtravels.com/wp-content/uploads/2025/04/kedarnath-temple.webp",
     desc: "One of the 12 Jyotirlingas of Lord Shiva.",
   },
   {
@@ -74,7 +74,7 @@ const places = [
     lat: 30.744,
     lng: 79.493,
     type: "temple",
-    img: "https://upload.wikimedia.org/wikipedia/commons/9/9d/Badrinath_Temple.jpg",
+    img: "https://www.taxiservicedehradun.com/image/rishikesh-to-badrinath-tempo-traveller.webp",
     desc: "A sacred temple dedicated to Lord Vishnu.",
   },
 ];

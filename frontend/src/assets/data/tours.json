@@ -1,0 +1,180 @@
+[
+  {
+    "title": "Nainital Lake Tour",
+    "city": "Nainital, Uttarakhand",
+    "price": 1999,
+    "maxPeople": 10,
+    "distance": 300,
+    "description": "Explore the mesmerizing Naini Lake surrounded by lush green hills and experience boating in the heart of Nainital.",
+    "ratings": [
+      {
+        "user": "Amit Joshi",
+        "rating": 4.8
+      },
+      {
+        "user": "Neha Rawat",
+        "rating": 4.7
+      }
+    ],
+    "image": "/api/v1/tour-images/tour-img01.jpg",
+    "featured": true,
+    "averageRating": 4.75
+  },
+  {
+    "title": "Valley of Flowers Trek",
+    "city": "Chamoli, Uttarakhand",
+    "price": 3999,
+    "maxPeople": 8,
+    "distance": 500,
+    "description": "Witness the breathtaking beauty of the Valley of Flowers, a UNESCO World Heritage Site famous for its vibrant meadows.",
+    "ratings": [
+      {
+        "user": "Suman Negi",
+        "rating": 4.9
+      }
+    ],
+    "image": "/tour-images/tour-img02.jpg",
+    "featured": true,
+    "averageRating": 4.9
+  },
+  {
+    "title": "Auli Snow Adventure",
+    "city": "Auli, Uttarakhand",
+    "price": 4999,
+    "maxPeople": 6,
+    "distance": 400,
+    "description": "Enjoy skiing and cable car rides in Auli, one of India’s top winter destinations with stunning snow-covered peaks.",
+    "ratings": [
+      {
+        "user": "Rahul Bisht",
+        "rating": 4.7
+      },
+      {
+        "user": "Manisha Sharma",
+        "rating": 4.8
+      }
+    ],
+    "image": "/tour-images/tour-img03.jpg",
+    "featured": true,
+    "averageRating": 4.75
+  },
+  {
+    "title": "Rishikesh River Rafting",
+    "city": "Rishikesh, Uttarakhand",
+    "price": 2499,
+    "maxPeople": 12,
+    "distance": 250,
+    "description": "Experience the thrill of white-water rafting in Rishikesh, the adventure capital of India, along with camping by the Ganges.",
+    "ratings": [
+      {
+        "user": "Vikas Rawat",
+        "rating": 4.6
+      }
+    ],
+    "image": "/tour-images/tour-img04.jpg",
+    "featured": true,
+    "averageRating": 4.6
+  },
+  {
+    "title": "Mussoorie Hill Station Tour",
+    "city": "Mussoorie, Uttarakhand",
+    "price": 2999,
+    "maxPeople": 10,
+    "distance": 200,
+    "description": "Explore the 'Queen of Hills' – Mussoorie, with breathtaking views, Mall Road shopping, and the famous Kempty Falls.",
+    "ratings": [
+      {
+        "user": "Priya Thakur",
+        "rating": 4.5
+      }
+    ],
+    "image": "/tour-images/tour-img05.jpg",
+    "featured": true,
+    "averageRating": 4.5
+  },
+  {
+    "title": "Jim Corbett Wildlife Safari",
+    "city": "Jim Corbett National Park, Uttarakhand",
+    "price": 3499,
+    "maxPeople": 6,
+    "distance": 150,
+    "description": "Experience the thrill of a wildlife safari in Jim Corbett National Park, home to the majestic Bengal tiger.",
+    "ratings": [
+      {
+        "user": "Rohit Sharma",
+        "rating": 4.8
+      }
+    ],
+    "image": "/tour-images/tour-img06.jpg",
+    "featured": true,
+    "averageRating": 4.8
+  },
+  {
+    "title": "Haridwar Spiritual Tour",
+    "city": "Haridwar, Uttarakhand",
+    "price": 1999,
+    "maxPeople": 15,
+    "distance": 220,
+    "description": "Immerse yourself in spirituality with a visit to Haridwar, known for its Ganga Aarti and sacred ghats.",
+    "ratings": [
+      {
+        "user": "Anjali Mehta",
+        "rating": 4.7
+      }
+    ],
+    "image": "/tour-images/tour-img07.jpg",
+    "featured": true,
+    "averageRating": 4.7
+  },
+  {
+    "title": "Chopta Trekking Adventure",
+    "city": "Chopta, Uttarakhand",
+    "price": 2999,
+    "maxPeople": 8,
+    "distance": 400,
+    "description": "Explore the serene beauty of Chopta, also known as the 'Mini Switzerland of India', with trekking and camping.",
+    "ratings": [
+      {
+        "user": "Karan Singh",
+        "rating": 4.9
+      }
+    ],
+    "image": "/tour-images/tour-img08.jpg",
+    "featured": true,
+    "averageRating": 4.9
+  },
+  {
+    "title": "Kedarnath Pilgrimage Tour",
+    "city": "Kedarnath, Uttarakhand",
+    "price": 4999,
+    "maxPeople": 10,
+    "distance": 500,
+    "description": "Embark on a spiritual journey to Kedarnath, one of the holiest shrines in India, surrounded by majestic mountains.",
+    "ratings": [
+      {
+        "user": "Meera Tiwari",
+        "rating": 4.8
+      }
+    ],
+    "image": "/tour-images/tour-img09.jpg",
+    "featured": true,
+    "averageRating": 4.8
+  },
+  {
+    "title": "Badrinath Pilgrimage Tour",
+    "city": "Badrinath, Uttarakhand",
+    "price": 4999,
+    "maxPeople": 10,
+    "distance": 520,
+    "description": "Visit the sacred Badrinath Temple, one of the Char Dham pilgrimage sites, nestled in the Himalayas.",
+    "ratings": [
+      {
+        "user": "Rajesh Pandey",
+        "rating": 4.9
+      }
+    ],
+    "image": "/tour-images/tour-img10.jpg",
+    "featured": true,
+    "averageRating": 4.9
+  }
+]

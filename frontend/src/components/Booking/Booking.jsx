@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import "./booking.css";
 import { Form, FormGroup, ListGroup, ListGroupItem, Button } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode.react";
+import { AuthContext } from "../../context/AuthConstext";
 
 const Booking = ({ tour, avgRating }) => {
   const { price, ratings = [] } = tour; // Destructure ratings from tour
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   const [credentials, setCredentials] = useState({
     userId: "01",
@@ -34,6 +36,14 @@ const Booking = ({ tour, avgRating }) => {
 
   const handleClick = (e) => {
     e.preventDefault();
+    
+    // Check if user is logged in
+    if (!user) {
+      alert("Please login to book a tour!");
+      navigate("/login");
+      return;
+    }
+
     if (!credentials.fullName || credentials.fullName.length < 4) {
       alert("Please enter a valid name!");
       return;
@@ -121,7 +131,12 @@ const Booking = ({ tour, avgRating }) => {
 
       <div className="booking__form">
         <h5>Information</h5>
-        <Form className="booking__info-form" onSubmit={handleClick}>
+        {!user ? (
+          <div className="login__prompt">
+            <p>Please <span onClick={() => navigate("/login")} className="login__link">login</span> to book a tour</p>
+          </div>
+        ) : (
+          <Form className="booking__info-form" onSubmit={handleClick}>
           <FormGroup>
             <input
               type="text"
@@ -154,8 +169,10 @@ const Booking = ({ tour, avgRating }) => {
             />
           </FormGroup>
         </Form>
+        )}
       </div>
 
+      {user && (
       <div className="booking__form">
         <h5>Payment Method</h5>
         <Form className="booking__payment-form">
@@ -335,6 +352,7 @@ const Booking = ({ tour, avgRating }) => {
           )}
         </Form>
       </div>
+      )}
 
       <div className="booking__botton">
         <ListGroup>
@@ -357,8 +375,10 @@ const Booking = ({ tour, avgRating }) => {
           className="btn primary__btn w-100 mt-4"
           onClick={handleClick}
           type="submit"
+          disabled={!user}
+          title={!user ? "Please login to book a tour" : ""}
         >
-          Book Now
+          {!user ? "Login to Book" : "Book Now"}
         </Button>
       </div>
     </div>

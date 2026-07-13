@@ -1,0 +1,46 @@
+.pagination span{
+    width: 2rem;
+    height: 2rem;
+    padding: 5px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--secondary-color);
+    color: var(--heading-color);
+    font-size: 1.1rem;
+    cursor: pointer;
+    font-weight: 700;
+}
+.active__page{
+    background: var(--secondary-color);
+    color: #fff !important;
+}
+
+/* ============ MOBILE RESPONSIVENESS ============ */
+@media (max-width: 768px) {
+    .pagination span {
+        width: 1.8rem;
+        height: 1.8rem;
+        font-size: 0.95rem;
+        padding: 3px;
+    }
+
+    .pagination {
+        gap: 1rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination span {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.8rem;
+        padding: 2px;
+    }
+
+    .pagination {
+        gap: 0.5rem !important;
+        flex-wrap: wrap;
+    }
+}

@@ -1,0 +1,29 @@
+.thank__you span i{
+    font-size: 4rem;
+    color:green;
+}
+.thank__you h1{
+    font-size: 3.6rem;
+    font-family: var(--subtitle-font-name);
+}
+
+/* ============ MOBILE RESPONSIVENESS ============ */
+@media (max-width: 768px) {
+    .thank__you span i {
+        font-size: 3rem;
+    }
+
+    .thank__you h1 {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .thank__you span i {
+        font-size: 2rem;
+    }
+
+    .thank__you h1 {
+        font-size: 1.8rem;
+    }
+}

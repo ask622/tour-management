@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import path from 'path'; // <-- ADD THIS
+import path from 'path';
 
 import tourRoute from './routes/tours.js';
 import userRoute from './routes/users.js';
@@ -16,42 +16,42 @@ const port = process.env.PORT || 8000;
 const corsOptions = {
     origin: true,
     credentials: true,
-}
+};
 
-// Database connection
 mongoose.set('strictQuery', false);
+
 const connect = async () => {
+    if (!process.env.MONGO_URI) {
+        console.log('No MONGO_URI provided. Continuing without database connection.');
+        return;
+    }
+
     try {
-        await mongoose.connect(process.env.MONGO_URI);
+        await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
         console.log('Database connected');
     } catch (err) {
-        console.error('Error in connecting database:', err.message);
-        process.exit(1);
+        console.error('Database connection failed. Continuing with fallback tour data:', err.message);
     }
 };
 
-// Middlewares
+connect();
+
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
-// STATIC FILE SERVING (IMPORTANT)
 app.use('/api/v1/tour-images', express.static(path.join(process.cwd(), 'tour-images')));
 
-// Routes
-app.use("/api/v1/tours", tourRoute);
-app.use("/api/v1/auth", authRoute);
-app.use("/api/v1/users", userRoute);
-app.use("/api/bookings", bookingRoute);
+app.use('/api/v1/tours', tourRoute);
+app.use('/api/v1/auth', authRoute);
+app.use('/api/v1/users', userRoute);
+app.use('/api/bookings', bookingRoute);
 
-// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ success: false, message: "Something went wrong!", error: err.message });
+  res.status(500).json({ success: false, message: 'Something went wrong!', error: err.message });
 });
 
-// Start Server
 app.listen(port, () => {
-    connect();
     console.log('Server listening on port', port);
 });

@@ -36,7 +36,7 @@ const Booking = ({ tour, avgRating }) => {
 
   const handleClick = (e) => {
     e.preventDefault();
-    
+
     // Check if user is logged in
     if (!user) {
       alert("Please login to book a tour!");
@@ -57,41 +57,15 @@ const Booking = ({ tour, avgRating }) => {
       return;
     }
 
-    // Validate payment method details
-    if (credentials.paymentMethod === "credit-card" || credentials.paymentMethod === "debit-card") {
-      if (!credentials.cardNumber || credentials.cardNumber.length !== 16) {
-        alert("Please enter a valid 16-digit card number!");
-        return;
-      }
-      if (!credentials.cardHolder || credentials.cardHolder.length < 3) {
-        alert("Please enter a valid cardholder name!");
-        return;
-      }
-      if (!credentials.expiryDate || !/^\d{2}\/\d{2}$/.test(credentials.expiryDate)) {
-        alert("Please enter expiry date in MM/YY format!");
-        return;
-      }
-      if (!credentials.cvv || credentials.cvv.length !== 3) {
-        alert("Please enter a valid 3-digit CVV!");
-        return;
-      }
-    } else if (credentials.paymentMethod === "upi") {
-      if (!credentials.upiId || !credentials.upiId.includes("@")) {
-        alert("Please enter a valid UPI ID!");
-        return;
-      }
-    } else if (credentials.paymentMethod === "razorpay") {
-      // Razorpay payment will be handled by Razorpay gateway
-      // No additional validation needed here
-    }
-
-    // Save booking to backend
+    // Payment method is only for demo/UI purposes here — no real payment
+    // gateway is being called, so we skip card/UPI field validation and
+    // go straight to saving the booking in the database.
     saveBooking(credentials);
   };
 
   const saveBooking = async (bookingData) => {
     try {
-      const response = await fetch("http://localhost:5000/api/bookings/create", {
+      const response = await fetch("https://tour-management-backend-0cbt.onrender.com/api/bookings/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,7 +81,7 @@ const Booking = ({ tour, avgRating }) => {
         throw new Error("Failed to save booking");
       }
 
-      const data = await response.json();
+      await response.json();
       alert("Tour booked successfully!");
       navigate("/Thank-you");
     } catch (error) {
@@ -236,7 +210,7 @@ const Booking = ({ tour, avgRating }) => {
             </div>
           </FormGroup>
 
-          {/* Card Details - for Credit/Debit Card */}
+          {/* Card Details - for Credit/Debit Card (demo UI only, not validated) */}
           {(credentials.paymentMethod === "credit-card" || credentials.paymentMethod === "debit-card") && (
             <div className="card__details">
               <FormGroup>
@@ -248,7 +222,6 @@ const Booking = ({ tour, avgRating }) => {
                   maxLength="16"
                   value={credentials.cardNumber}
                   onChange={handleChange}
-                  required
                 />
               </FormGroup>
               <FormGroup>
@@ -259,7 +232,6 @@ const Booking = ({ tour, avgRating }) => {
                   placeholder="John Doe"
                   value={credentials.cardHolder}
                   onChange={handleChange}
-                  required
                 />
               </FormGroup>
               <div className="card__row d-flex gap-2">
@@ -272,7 +244,6 @@ const Booking = ({ tour, avgRating }) => {
                     maxLength="5"
                     value={credentials.expiryDate}
                     onChange={handleChange}
-                    required
                   />
                 </FormGroup>
                 <FormGroup className="flex-fill">
@@ -284,14 +255,13 @@ const Booking = ({ tour, avgRating }) => {
                     maxLength="3"
                     value={credentials.cvv}
                     onChange={handleChange}
-                    required
                   />
                 </FormGroup>
               </div>
             </div>
           )}
 
-          {/* Razorpay Payment Info */}
+          {/* Razorpay Payment Info (demo only) */}
           {credentials.paymentMethod === "razorpay" && (
             <div className="razorpay__info">
               <p className="razorpay__note">
@@ -307,7 +277,7 @@ const Booking = ({ tour, avgRating }) => {
             </div>
           )}
 
-          {/* UPI Details */}
+          {/* UPI Details (demo UI only, not validated) */}
           {credentials.paymentMethod === "upi" && (
             <div className="upi__section">
               <FormGroup>
@@ -318,10 +288,9 @@ const Booking = ({ tour, avgRating }) => {
                   placeholder="example@upi"
                   value={credentials.upiId}
                   onChange={handleChange}
-                  required
                 />
               </FormGroup>
-              
+
               <div className="upi__qr-container">
                 <p className="upi__qr-label">Pay using your phone's UPI app</p>
                 <div className="upi__qr-code">

@@ -181,17 +181,31 @@ export const getAllTours = async (req, res) => {
     }
 };
 
+const parseQueryNumber = (value) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : undefined;
+};
+
 export const getTourBySearch = async (req, res) => {
-    const city = new RegExp(req.query.city, 'i');
-    const distance = parseInt(req.query.distance);
-    const maxPeople = parseInt(req.query.maxPeople);
+    const searchTerm = (req.query.searchTerm || req.query.city || req.query.search || '').trim();
+    const searchRegex = searchTerm ? new RegExp(searchTerm, 'i') : null;
+    const distance = parseQueryNumber(req.query.distance);
+    const maxPeople = parseQueryNumber(req.query.maxPeople);
+
+    const matchesSearch = (tour) => {
+        if (!searchTerm) return true;
+        return Boolean(
+            tour.title?.match(searchRegex) ||
+            tour.city?.match(searchRegex)
+        );
+    };
 
     if (!isDatabaseReady()) {
         const fallbackData = getFallbackToursData(req).filter(tour => {
-            const matchesCity = !req.query.city || tour.city.match(city);
-            const matchesDistance = Number.isNaN(distance) || tour.distance >= distance;
-            const matchesPeople = Number.isNaN(maxPeople) || tour.maxPeople >= maxPeople;
-            return matchesCity && matchesDistance && matchesPeople;
+            const matchesDistance = distance === undefined || tour.distance >= distance;
+            const matchesPeople = maxPeople === undefined || tour.maxPeople >= maxPeople;
+            return matchesSearch(tour) && matchesDistance && matchesPeople;
         });
 
         return res.status(200).json({
@@ -203,11 +217,24 @@ export const getTourBySearch = async (req, res) => {
     }
 
     try {
-        const tours = await Tour.find({
-            city: city,
-            distance: { $gte: distance },
-            maxPeople: { $gte: maxPeople },
-        });
+        const filters = {};
+
+        if (searchTerm) {
+            filters.$or = [
+                { title: { $regex: searchTerm, $options: 'i' } },
+                { city: { $regex: searchTerm, $options: 'i' } },
+            ];
+        }
+
+        if (distance !== undefined) {
+            filters.distance = { $gte: distance };
+        }
+
+        if (maxPeople !== undefined) {
+            filters.maxPeople = { $gte: maxPeople };
+        }
+
+        const tours = await Tour.find(filters);
 
         const updatedTours = tours.map(tour => addBaseUrlToPhoto(req, tour));
 

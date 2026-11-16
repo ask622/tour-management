@@ -1,10 +1,12 @@
 .search__bar {
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+  background: #fff;
+  border: 1px solid #e8edf2;
+  padding: 0.75rem 1rem;
+  border-radius: 20px;
+  box-shadow: 0 12px 35px rgba(16, 42, 67, .08);
   width: 100%;
-  margin-top: 50px;
-  overflow-x: auto;
+  margin-top: 28px;
+  overflow: visible;
 }
 
 .search__bar form {
@@ -18,13 +20,13 @@
   align-items: center;
   gap: 0.5rem;
   flex: 1 1 250px;
-  min-width: 200px;
+  min-width: 170px;
   position: relative;
 }
 
 .form__group span {
   font-size: 1.8rem;
-  color: #ee6e6e;
+  color: #d97706;
   font-weight: 500;
 }
 
@@ -63,12 +65,25 @@
 }
 
 .search__suggestions li:hover {
-  background: #f6f7fb;
+  background: #f5f7f3;
 }
 
 .form__group h6 {
   margin-bottom: 0;
   font-size: 0.85rem;
+}
+
+.form__group label {
+  color: #64748b;
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.form__group input[type="date"],
+.form__group input[type="number"] {
+  min-width: 118px;
 }
 
 .form__group-fast {
@@ -81,7 +96,11 @@
   border: none;
   outline: none;
   box-shadow: none;
-  background: none;
+  background: #102a43;
+  border-radius: 13px;
+  color: #fff;
+  min-width: 48px;
+  min-height: 48px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -91,13 +110,17 @@
 .search__icon i {
   font-size: 1.2rem;
   padding: 0.5rem;
-  background: var(--secondary-color);
+  background: transparent;
   color: #fff;
-  border-radius: 10px 5px 10px 5px;
+  border-radius: 13px;
   cursor: pointer;
   border: none;
   outline: none;
   box-shadow: none;
+}
+
+.search__icon:hover {
+  background: #1d4568;
 }
 
 /* ✅ Responsive Support */
@@ -125,7 +148,7 @@
   .search__bar {
     border-radius: 15px;
     padding: 0.75rem;
-    margin-top: 2rem;
+    margin-top: 1.25rem;
   }
 
   .search__bar form {

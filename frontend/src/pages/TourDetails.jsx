@@ -6,6 +6,7 @@ import calculateAvgRating from "../utils/avgRating";
 import avatar from "../assets/images/avatar.jpg";
 import Booking from "../components/Booking/Booking";
 import Newsletter from "../shared/Newsletter";
+import TourCard from "../shared/TourCard";
 import { BASE_URL } from "../utils/config";
 import useFetch from "./../hooks/useFatch";
 import { AuthContext } from "./../context/AuthConstext";
@@ -18,72 +19,102 @@ const TourDetails = () => {
 
   const { data: tour, loading, error } = useFetch(`${BASE_URL}/api/v1/tours/${id}`);
   const [allRatings, setAllRatings] = useState([]);
+  const [reviewLoadError, setReviewLoadError] = useState("");
+  const [relatedTours, setRelatedTours] = useState([]);
+  const [reviewError, setReviewError] = useState("");
+  const [reviewNotice, setReviewNotice] = useState("");
+  const [reviewSaving, setReviewSaving] = useState(false);
 
   useEffect(() => {
-    if (tour && tour.ratings) {
-      setAllRatings(tour.ratings);
-      window.scrollTo(0, 0);
-    }
-  }, [tour]);
+    if (!tour) return undefined;
+    window.scrollTo(0, 0);
+    document.title = `${tour.title} | Yatraventure`;
+    const description = document.querySelector('meta[name="description"]');
+    if (description) description.content = (tour.description || tour.desc || "").slice(0, 160);
+    let active = true;
+    setAllRatings([]);
+    setReviewLoadError("");
+    setRelatedTours([]);
+    fetch(`${BASE_URL}/api/v1/reviews/${id}`)
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "Failed to load reviews");
+        return result;
+      })
+      .then((result) => {
+        if (active) setAllRatings(result.data || []);
+      })
+      .catch((reviewError) => {
+        if (active) setReviewLoadError(reviewError.message);
+      });
+    const relatedQuery = new URLSearchParams({ searchTerm: tour.city || "" });
+    fetch(`${BASE_URL}/api/v1/tours/search/getTourBySearch?${relatedQuery.toString()}`)
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "Failed to load similar journeys");
+        return result;
+      })
+      .then((result) => {
+        if (active) setRelatedTours((result.data || []).filter((item) => item._id !== tour._id).slice(0, 3));
+      })
+      .catch(() => {
+        if (active) setRelatedTours([]);
+      });
+    return () => { active = false; };
+  }, [tour, id]);
 
+  if (loading) {
+    return <main className="tour-detail-state"><div className="tour-detail-skeleton" aria-label="Loading tour details"><span /><div /><div /></div></main>;
+  }
+  if (error) {
+    return <main className="tour-detail-state" role="alert"><i className="ri-wifi-off-line" /><h2>We couldn’t load this journey.</h2><p>{error}</p></main>;
+  }
   if (!tour) {
-    return <h2>Tour not found</h2>;
+    return <main className="tour-detail-state"><i className="ri-compass-3-line" /><h2>Journey not found</h2><p>This trip may have been removed or is no longer available.</p></main>;
   }
 
-  const { image, title, desc, price, city, distance, maxGroupSize } = tour;
+  const { image, title, price, discountPrice, description, desc, city, distance, duration, maxGroupSize, maxPeople } = tour;
+  const currentPrice = discountPrice ?? price;
+  const gallery = [...(image ? [image] : []), ...(Array.isArray(tour.gallery) ? tour.gallery : [])].filter(Boolean);
   const { totalRating, avgRating } = calculateAvgRating(allRatings);
 
   const submitHandler = async e => {
     e.preventDefault();
     const reviewText = reviewMsgRef.current.value;
 
-    // Login check
     if (!user || user === "undefined" || user === null) {
-      alert("Please log in to submit a review!");
+      setReviewError("Please sign in to leave a review.");
       return;
     }
 
-    // Rating check
     if (!tourRating) {
-      alert("Please select a star rating!");
+      setReviewError("Choose a star rating before submitting.");
       return;
     }
 
+    setReviewSaving(true);
+    setReviewError("");
+    setReviewNotice("");
     try {
-      const reviewObj = {
-        username: user.username,
-        reviewText,
-        rating: tourRating
-      };
-
-      const res = await fetch(`${BASE_URL}/api/v1/tours/${id}/review`, {
+      const res = await fetch(`${BASE_URL}/api/v1/reviews/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(reviewObj)
+        body: JSON.stringify({ reviewText, rating: tourRating })
       });
-
-      // Check if response is JSON
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await res.text();
-        alert("Server error: " + text);
-        return;
-      }
-
       const result = await res.json();
       if (!res.ok) {
-        return alert(result.message);
+        throw new Error(result.message || "Could not submit your review");
       }
-      alert("Review submitted successfully!");
-
-      setAllRatings(prev => [...prev, reviewObj]);
+      setReviewNotice(result.message || "Review submitted for administrator approval.");
       reviewMsgRef.current.value = "";
       setTourRating(null);
     } catch (err) {
-      alert(err.message);
+      setReviewError(err.message || "Could not submit your review");
+    } finally {
+      setReviewSaving(false);
     }
   };
 
@@ -91,13 +122,11 @@ const TourDetails = () => {
     <>
       <section>
         <Container>
-          {loading && <h4 className="text-center pt-5">Loading...</h4>}
-          {error && <h4 className="text-center pt-5">{error}</h4>}
-          {!loading && !error && (
-            <Row>
+          <Row>
               <Col lg="6" md="12" xs="12">
                 <div className="tour__content">
                   <img src={image} alt={title} />
+                  {gallery.length > 1 && <div className="tour__gallery">{gallery.slice(1).map((photo, index) => <img src={photo} alt={`${title} ${index + 2}`} loading="lazy" decoding="async" key={`${photo}-${index}`} />)}</div>}
                   <div className="tour__info">
                     <h2>{title}</h2>
                     <div className="d-flex align-items-center gap-5">
@@ -112,27 +141,42 @@ const TourDetails = () => {
                     </div>
                     <div className="tour__extra-details">
                       <span>
-                        <i className="ri-wallet-2-fill"></i> Rs.{price} /per person
+                        <i className="ri-wallet-2-fill"></i> ₹{Number(currentPrice).toLocaleString("en-IN")} /per person
+                        {discountPrice != null && <del className="tour__old-price">₹{Number(price).toLocaleString("en-IN")}</del>}
                       </span>
                       <span>
                         <i className="ri-map-pin-time-line"></i> {distance} k/m
                       </span>
                       <span>
-                        <i className="ri-group-line"></i> {maxGroupSize} People
+                        <i className="ri-group-line"></i> {maxPeople || maxGroupSize} People
                       </span>
+                      {duration && <span><i className="ri-time-line"></i> {duration}</span>}
                     </div>
                     <h5>Description</h5>
-                    <p>{desc}</p>
+                    <p>{description || desc}</p>
+                    {Array.isArray(tour.itinerary) && tour.itinerary.length > 0 && <><h5>Itinerary</h5><ol className="tour__itinerary">{tour.itinerary.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ol></>}
+                    <div className="tour__service-lists">
+                      {Array.isArray(tour.includedServices) && tour.includedServices.length > 0 && <div><h5>Included</h5><ul>{tour.includedServices.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul></div>}
+                      {Array.isArray(tour.excludedServices) && tour.excludedServices.length > 0 && <div><h5>Not included</h5><ul>{tour.excludedServices.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul></div>}
+                    </div>
                   </div>
 
                   <div className="tour__reviews mt-4">
                     <h4>Reviews {allRatings?.length}</h4>
+                    {reviewLoadError && <p className="text-danger" role="alert">{reviewLoadError}</p>}
                     <Form onSubmit={submitHandler}>
                       <div className="d-flex align-items-center gap-3 mb-4 rating__group">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <span key={star} onClick={() => setTourRating(star)} style={{ cursor: "pointer", color: tourRating === star ? "orange" : "inherit" }}>
+                          <button
+                            type="button"
+                            key={star}
+                            onClick={() => setTourRating(star)}
+                            aria-label={`Rate ${star} out of 5`}
+                            aria-pressed={tourRating === star}
+                            style={{ color: tourRating === star ? "#e58b12" : "inherit" }}
+                          >
                             {star} <i className="ri-star-s-fill"></i>
-                          </span>
+                          </button>
                         ))}
                       </div>
                       <div className="reviews__input">
@@ -140,13 +184,16 @@ const TourDetails = () => {
                           type="text"
                           ref={reviewMsgRef}
                           placeholder="Share your thoughts"
+                          maxLength="2000"
                           required
                         />
-                        <button className="btn primary__btn text-white" type="submit">
-                          Submit
+                        <button className="btn primary__btn text-white" type="submit" disabled={reviewSaving}>
+                          {reviewSaving ? "Submitting…" : "Submit"}
                         </button>
                       </div>
                     </Form>
+                    {reviewError && <p className="text-danger" role="alert">{reviewError}</p>}
+                    {reviewNotice && <p className="text-success" role="status">{reviewNotice}</p>}
 
                     <ListGroup className="user__reviews">
                       {allRatings.length > 0 ? (
@@ -176,10 +223,15 @@ const TourDetails = () => {
               <Col lg="6" md="12" xs="12">
                 <Booking tour={tour} avgRating={avgRating} />
               </Col>
-            </Row>
-          )}
+          </Row>
         </Container>
       </section>
+      {relatedTours.length > 0 && <section className="tour-related-section">
+        <Container>
+          <div className="tour-related-heading"><span>KEEP EXPLORING</span><h2>More journeys nearby</h2></div>
+          <Row>{relatedTours.map((relatedTour) => <Col lg="4" md="6" xs="12" className="mb-4" key={relatedTour._id}><TourCard tour={relatedTour} /></Col>)}</Row>
+        </Container>
+      </section>}
       <Newsletter />
     </>
   );

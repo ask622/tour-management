@@ -1,20 +1,21 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Container, Row, Col, Form, FormGroup, Button } from 'reactstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import '../styles/login.css';
 import registerImg from '../assets/images/register.png';
 import userIcon from '../assets/images/user.png';
-import { AuthContext } from './../context/AuthConstext';
 import { BASE_URL } from './../utils/config';
 
 const Register = () => {
     const [credentials, setCredentials] = useState({
-        username: undefined,
-        email: undefined,
-        password: undefined
+        username: '',
+        email: '',
+        password: ''
     });
-    const { dispatch } = useContext(AuthContext);
-    const navigate = useNavigate();
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     const handleChange = (e) => {
         setCredentials((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -22,6 +23,9 @@ const Register = () => {
 
     const handleClick = async (e) => {
         e.preventDefault();
+        setSaving(true);
+        setError('');
+        setSuccess('');
         try {
             const res = await fetch(`${BASE_URL}/api/v1/auth/registration`, {
                 method: 'POST',
@@ -31,11 +35,12 @@ const Register = () => {
                 body: JSON.stringify(credentials) // Use the state variable here
             });
             const result = await res.json();
-            if (res.ok) alert(result.message);
-            dispatch({ type: 'REGISTER_SUCCESS' });
-            navigate('/login');
+            if (!res.ok) throw new Error(result.message || 'Could not create your account');
+            setSuccess(result.message || 'Your account has been created. You can now sign in.');
         } catch (err) {
-            alert(err.message);
+            setError(err.message || 'Could not create your account');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -60,7 +65,10 @@ const Register = () => {
                                             placeholder="User Name"
                                             required
                                             id="username"
+                                            minLength="2"
+                                            maxLength="80"
                                             onChange={handleChange}
+                                            value={credentials.username}
                                         />
                                     </FormGroup>
                                     <FormGroup>
@@ -74,17 +82,31 @@ const Register = () => {
                                     </FormGroup>
                                     <FormGroup>
                                         <input
-                                            type="password"
+                                        type={passwordVisible ? 'text' : 'password'}
                                             placeholder="Password"
                                             required
-                                            id="password" // Corrected ID
+                                        id="password"
+                                        minLength="8"
+                                        autoComplete="new-password"
                                             onChange={handleChange}
+                                        value={credentials.password}
                                         />
+                                    <button
+                                        type="button"
+                                        className="password-visibility-toggle"
+                                        onClick={() => setPasswordVisible((visible) => !visible)}
+                                        aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+                                        aria-pressed={passwordVisible}
+                                    >
+                                        <i className={passwordVisible ? 'ri-eye-off-line' : 'ri-eye-line'} aria-hidden="true" />
+                                    </button>
                                     </FormGroup>
-                                    <Button className="btn secondary__btn auth__btn" type="submit">
-                                        Create Account
+                                    <Button className="btn secondary__btn auth__btn" type="submit" disabled={saving}>
+                                    {saving ? 'Creating account…' : 'Create Account'}
                                     </Button>
                                 </Form>
+                                {error && <p className="auth-error" role="alert">{error}</p>}
+                                {success && <p className="auth-success" role="status">{success}</p>}
                                 <p>
                                     Already have an account? <Link to="/login">Login</Link>
                                 </p>

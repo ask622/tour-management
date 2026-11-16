@@ -9,12 +9,30 @@ import tourRoute from './routes/tours.js';
 import userRoute from './routes/users.js';
 import authRoute from './routes/auth.js';
 import bookingRoute from './routes/bookings.js';
+import adminRoute from './routes/admin.js';
+import reviewRoute from './routes/reviews.js';
+import catalogRoute from './routes/catalog.js';
+import couponRoute from './routes/coupons.js';
+import enquiryRoute from './routes/enquiries.js';
+import siteContentRoute from './routes/siteContent.js';
+import newsletterRoute from './routes/newsletter.js';
+import maintenanceMode from './utils/maintenanceMode.js';
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 8000;
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+].filter(Boolean);
 const corsOptions = {
-    origin: true,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Origin is not allowed by CORS'));
+    },
     credentials: true,
 };
 
@@ -42,9 +60,17 @@ app.use(cookieParser());
 
 app.use('/api/v1/tour-images', express.static(path.join(process.cwd(), 'tour-images')));
 
+app.use(maintenanceMode);
 app.use('/api/v1/tours', tourRoute);
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/users', userRoute);
+app.use('/api/v1/admin', adminRoute);
+app.use('/api/v1/reviews', reviewRoute);
+app.use('/api/v1', catalogRoute);
+app.use('/api/v1/coupons', couponRoute);
+app.use('/api/v1/enquiries', enquiryRoute);
+app.use('/api/v1/site-content', siteContentRoute);
+app.use('/api/v1/newsletter', newsletterRoute);
 app.use('/api/bookings', bookingRoute);
 
 app.use((err, req, res, next) => {

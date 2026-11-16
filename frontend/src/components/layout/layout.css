@@ -1,0 +1,51 @@
+.maintenance-page {
+  align-items: center;
+  background: #f5f6f2;
+  color: #173a30;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.maintenance-card {
+  background: #fff;
+  border: 1px solid #e6e9e3;
+  border-radius: 22px;
+  box-shadow: 0 24px 70px rgba(23, 58, 48, .08);
+  max-width: 560px;
+  padding: 54px 44px;
+  text-align: center;
+}
+
+.maintenance-card > span {
+  color: #b67a43;
+  font-size: 34px;
+}
+
+.maintenance-card p:first-of-type {
+  color: #b67a43;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  margin: 20px 0 10px;
+}
+
+.maintenance-card h1 {
+  font-size: clamp(28px, 6vw, 42px);
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+}
+
+.maintenance-card p:last-child {
+  color: #6d7b71;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 16px 0 0;
+}
+
+@media (max-width: 575px) {
+  .maintenance-card {
+    padding: 42px 25px;
+  }
+}

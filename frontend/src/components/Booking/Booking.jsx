@@ -1,355 +1,223 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useState } from "react";
 import "./booking.css";
 import { Form, FormGroup, ListGroup, ListGroupItem, Button } from "reactstrap";
 import { useNavigate } from "react-router-dom";
-import QRCode from "qrcode.react";
 import { AuthContext } from "../../context/AuthConstext";
+import { BASE_URL } from "../../utils/config";
+
+const BOOKING_SERVICE_FEE = 830;
 
 const Booking = ({ tour, avgRating }) => {
-  const { price, ratings = [] } = tour; // Destructure ratings from tour
+  const { ratings = [] } = tour;
+  const price = tour.discountPrice ?? tour.price;
+  const availableDates = Array.isArray(tour.availableDates) ? tour.availableDates : [];
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-
-  const [credentials, setCredentials] = useState({
-    userId: "01",
-    userEmail: "example@gmail.com",
-    fullName: "",
+  const [details, setDetails] = useState({
+    fullName: user?.username || "",
     phone: "",
     guestSize: 1,
     bookAt: "",
-    paymentMethod: "razorpay",
-    cardNumber: "",
-    cardHolder: "",
-    expiryDate: "",
-    cvv: "",
-    upiId: "",
   });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponChecking, setCouponChecking] = useState(false);
+  const [couponError, setCouponError] = useState("");
 
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setCredentials((prev) => ({ ...prev, [id]: value }));
+  const subtotal = Number(price) * Number(details.guestSize);
+  const discountAmount = couponApplied?.discountAmount || 0;
+  const totalAmount = subtotal + BOOKING_SERVICE_FEE - discountAmount;
+  const minimumDate = new Date().toISOString().slice(0, 10);
+  const maximumTravelers = Number(tour.maxPeople || tour.maxGroupSize) || undefined;
+
+  const handleChange = (event) => {
+    const { id, value } = event.target;
+    setDetails((current) => ({ ...current, [id]: value }));
+    if (id === "guestSize") setCouponApplied(null);
   };
 
-  const serviceFee = 830;
-  const totalAmount =
-    Number(price) * Number(credentials.guestSize) + Number(serviceFee);
+  const applyCoupon = async () => {
+    setCouponChecking(true);
+    setCouponError("");
+    setCouponApplied(null);
+    try {
+      const response = await fetch(`${BASE_URL}/api/v1/coupons/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, orderAmount: subtotal }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Coupon could not be applied");
+      setCouponApplied(result.data);
+    } catch (validationError) {
+      setCouponError(validationError.message);
+    } finally {
+      setCouponChecking(false);
+    }
+  };
 
-  const handleClick = (e) => {
-    e.preventDefault();
-
-    // Check if user is logged in
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     if (!user) {
-      alert("Please login to book a tour!");
       navigate("/login");
       return;
     }
-
-    if (!credentials.fullName || credentials.fullName.length < 4) {
-      alert("Please enter a valid name!");
-      return;
-    }
-    if (!credentials.phone || credentials.phone.length !== 10) {
-      alert("Please enter a valid 10-digit phone number!");
-      return;
-    }
-    if (!credentials.bookAt || credentials.guestSize < 1) {
-      alert("Please fill all fields correctly!");
+    if (couponCode.trim() && !couponApplied) {
+      setError("Apply the coupon or clear the coupon code before requesting this trip.");
       return;
     }
 
-    // Payment method is only for demo/UI purposes here — no real payment
-    // gateway is being called, so we skip card/UPI field validation and
-    // go straight to saving the booking in the database.
-    saveBooking(credentials);
-  };
-
-  const saveBooking = async (bookingData) => {
+    setSaving(true);
+    setError("");
     try {
-      const response = await fetch("https://tour-management-backend-0cbt.onrender.com/api/bookings/create", {
+      const response = await fetch(`${BASE_URL}/api/bookings/create`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...bookingData,
+          ...details,
           tourId: tour._id,
-          totalAmount: totalAmount,
+          paymentMethod: "pay-on-arrival",
+          couponCode: couponApplied?.code || "",
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to save booking");
-      }
-
-      await response.json();
-      alert("Tour booked successfully!");
-      navigate("/Thank-you");
-    } catch (error) {
-      alert("Error: " + error.message);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Could not create booking");
+      navigate("/Thank-you", { state: { message: result.message } });
+    } catch (bookingError) {
+      setError(bookingError.message);
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <div className="booking">
       <div className="booking__top d-flex align-items-center justify-content-between">
-        <h3>
-          Rs.{price}
-          <span>/per person</span>
-        </h3>
+        <h3>₹{Number(price).toLocaleString("en-IN")}<span>/per person</span></h3>
         <span className="tour__rating d-flex align-items-center gap-1">
-          <i className="ri-star-fill" style={{ color: "var(--secondary-color)" }}></i>
-          {avgRating !== 0 && avgRating}
-          {ratings?.length === 0 ? " Not Rated" : <span>({ratings?.length})</span>}
+          <i className="ri-star-fill" style={{ color: "var(--secondary-color)" }} aria-hidden="true" />
+          {avgRating || "Not rated"}
+          {ratings.length > 0 && <span>({ratings.length})</span>}
         </span>
       </div>
 
-      <div className="booking__form">
-        <h5>Information</h5>
-        {!user ? (
-          <div className="login__prompt">
-            <p>Please <span onClick={() => navigate("/login")} className="login__link">login</span> to book a tour</p>
-          </div>
-        ) : (
-          <Form className="booking__info-form" onSubmit={handleClick}>
-          <FormGroup>
+      <Form className="booking__info-form" onSubmit={handleSubmit}>
+        <h5>Request your trip</h5>
+        <FormGroup>
+          <input
+            type="text"
+            id="fullName"
+            autoComplete="name"
+            placeholder="Full name"
+            minLength="2"
+            required
+            value={details.fullName}
+            onChange={handleChange}
+            disabled={!user || saving}
+          />
+        </FormGroup>
+        <FormGroup>
+          <input
+            type="tel"
+            id="phone"
+            autoComplete="tel"
+            inputMode="numeric"
+            pattern="[0-9]{10}"
+            maxLength="10"
+            placeholder="10-digit phone number"
+            required
+            value={details.phone}
+            onChange={handleChange}
+            disabled={!user || saving}
+          />
+        </FormGroup>
+        <FormGroup className="d-flex align-items-center gap-3">
+          {availableDates.length > 0 ? (
+            <select id="bookAt" required value={details.bookAt} onChange={handleChange} disabled={!user || saving}>
+              <option value="">Select available date</option>
+              {availableDates.map((date) => {
+                const value = new Date(date).toISOString().slice(0, 10);
+                return value >= minimumDate ? <option value={value} key={value}>{new Date(`${value}T00:00:00`).toLocaleDateString()}</option> : null;
+              })}
+            </select>
+          ) : (
             <input
-              type="text"
-              placeholder="Full Name"
-              id="fullName"
-              value={credentials.fullName}
-              onChange={handleChange}
+              type="date"
+              id="bookAt"
+              min={minimumDate}
               required
-            />
-          </FormGroup>
-          <FormGroup>
-            <input
-              type="text"
-              placeholder="Phone"
-              id="phone"
-              value={credentials.phone}
+              value={details.bookAt}
               onChange={handleChange}
-              required
+              disabled={!user || saving}
             />
-          </FormGroup>
-          <FormGroup className="d-flex align-items-center gap-3">
-            <input type="date" id="bookAt" onChange={handleChange} required />
-            <input
-              type="text"
-              placeholder="Guest"
-              id="guestSize"
-              value={credentials.guestSize}
-              onChange={handleChange}
-              required
-            />
-          </FormGroup>
-        </Form>
-        )}
-      </div>
-
-      {user && (
-      <div className="booking__form">
-        <h5>Payment Method</h5>
-        <Form className="booking__payment-form">
-          <FormGroup className="payment__method-group">
-            <div className="payment__methods">
-              <label className="payment__label razorpay__label">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="razorpay"
-                  checked={credentials.paymentMethod === "razorpay"}
-                  onChange={handleChange}
-                  id="paymentMethod"
-                />
-                <span>Razorpay <i className="ri-secure-payment-line"></i></span>
-              </label>
-              <label className="payment__label">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="credit-card"
-                  checked={credentials.paymentMethod === "credit-card"}
-                  onChange={handleChange}
-                  id="paymentMethod"
-                />
-                <span>Credit Card</span>
-              </label>
-              <label className="payment__label">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="debit-card"
-                  checked={credentials.paymentMethod === "debit-card"}
-                  onChange={handleChange}
-                  id="paymentMethod"
-                />
-                <span>Debit Card</span>
-              </label>
-              <label className="payment__label">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="upi"
-                  checked={credentials.paymentMethod === "upi"}
-                  onChange={handleChange}
-                  id="paymentMethod"
-                />
-                <span>UPI</span>
-              </label>
-              <label className="payment__label">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="wallet"
-                  checked={credentials.paymentMethod === "wallet"}
-                  onChange={handleChange}
-                  id="paymentMethod"
-                />
-                <span>Digital Wallet</span>
-              </label>
-            </div>
-          </FormGroup>
-
-          {/* Card Details - for Credit/Debit Card (demo UI only, not validated) */}
-          {(credentials.paymentMethod === "credit-card" || credentials.paymentMethod === "debit-card") && (
-            <div className="card__details">
-              <FormGroup>
-                <label htmlFor="cardNumber">Card Number</label>
-                <input
-                  type="text"
-                  id="cardNumber"
-                  placeholder="1234 5678 9012 3456"
-                  maxLength="16"
-                  value={credentials.cardNumber}
-                  onChange={handleChange}
-                />
-              </FormGroup>
-              <FormGroup>
-                <label htmlFor="cardHolder">Cardholder Name</label>
-                <input
-                  type="text"
-                  id="cardHolder"
-                  placeholder="John Doe"
-                  value={credentials.cardHolder}
-                  onChange={handleChange}
-                />
-              </FormGroup>
-              <div className="card__row d-flex gap-2">
-                <FormGroup className="flex-fill">
-                  <label htmlFor="expiryDate">Expiry Date</label>
-                  <input
-                    type="text"
-                    id="expiryDate"
-                    placeholder="MM/YY"
-                    maxLength="5"
-                    value={credentials.expiryDate}
-                    onChange={handleChange}
-                  />
-                </FormGroup>
-                <FormGroup className="flex-fill">
-                  <label htmlFor="cvv">CVV</label>
-                  <input
-                    type="text"
-                    id="cvv"
-                    placeholder="123"
-                    maxLength="3"
-                    value={credentials.cvv}
-                    onChange={handleChange}
-                  />
-                </FormGroup>
-              </div>
-            </div>
           )}
+          <input
+            type="number"
+            id="guestSize"
+            min="1"
+            max={maximumTravelers}
+            aria-label="Number of travelers"
+            required
+            value={details.guestSize}
+            onChange={handleChange}
+            disabled={!user || saving}
+          />
+        </FormGroup>
 
-          {/* Razorpay Payment Info (demo only) */}
-          {credentials.paymentMethod === "razorpay" && (
-            <div className="razorpay__info">
-              <p className="razorpay__note">
-                <i className="ri-secure-payment-line"></i>
-                Safe, secure & encrypted payments powered by Razorpay. Pay using Credit Card, Debit Card, UPI, Wallets & more.
-              </p>
-              <div className="razorpay__methods">
-                <span className="razorpay__badge">💳 Credit Card</span>
-                <span className="razorpay__badge">💳 Debit Card</span>
-                <span className="razorpay__badge">📱 UPI</span>
-                <span className="razorpay__badge">💰 Wallets</span>
-              </div>
-            </div>
-          )}
+        <div className="booking__coupon-control">
+          <input
+            type="text"
+            aria-label="Coupon code"
+            placeholder="Coupon code"
+            value={couponCode}
+            onChange={(event) => { setCouponCode(event.target.value.toUpperCase()); setCouponApplied(null); setCouponError(""); }}
+            disabled={!user || saving || couponChecking}
+          />
+          <Button type="button" className="btn secondary__btn" onClick={applyCoupon} disabled={!user || !couponCode.trim() || couponChecking || saving}>
+            {couponChecking ? "Checking…" : couponApplied ? "Applied" : "Apply"}
+          </Button>
+        </div>
+        {couponError && <p className="booking__error" role="alert">{couponError}</p>}
+        {couponApplied && <p className="booking__coupon-success" role="status">{couponApplied.code} applied: save ₹{Number(couponApplied.discountAmount).toLocaleString("en-IN")}</p>}
 
-          {/* UPI Details (demo UI only, not validated) */}
-          {credentials.paymentMethod === "upi" && (
-            <div className="upi__section">
-              <FormGroup>
-                <label htmlFor="upiId">Your UPI ID</label>
-                <input
-                  type="text"
-                  id="upiId"
-                  placeholder="example@upi"
-                  value={credentials.upiId}
-                  onChange={handleChange}
-                />
-              </FormGroup>
+        <div className="booking__payment-note">
+          <i className="ri-information-line" aria-hidden="true" />
+          <p>Send a reservation request now. Online payment is not enabled; payment remains pending until verified separately.</p>
+        </div>
+        {error && <p className="booking__error" role="alert">{error}</p>}
 
-              <div className="upi__qr-container">
-                <p className="upi__qr-label">Pay using your phone's UPI app</p>
-                <div className="upi__qr-code">
-                  <QRCode
-                    value={`upi://pay?pa=639797516@fbl&pn=TourBooking&am=${totalAmount}&tr=${Date.now()}`}
-                    size={200}
-                    level="H"
-                    includeMargin={true}
-                  />
-                </div>
-                <p className="upi__qr-info">
-                  <i className="ri-phone-camera-line"></i>
-                  Scan this QR code with any UPI app to pay
-                </p>
-                <div className="upi__id-display">
-                  <p className="upi__id-label">Or send money directly to:</p>
-                  <p className="upi__id-value">639797516@fam</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Wallet Details */}
-          {credentials.paymentMethod === "wallet" && (
-            <div className="wallet__info">
-              <p className="wallet__note">Select your preferred digital wallet during payment</p>
-            </div>
-          )}
-        </Form>
-      </div>
-      )}
-
-      <div className="booking__botton">
-        <ListGroup>
-          <ListGroupItem className="border-0 px-0">
-            <h5 className="d-flex align-items-center gap-1">
-              Rs.{price} <i className="ri-close-line"></i>Per person
-            </h5>
-            <span>Rs.{price}</span>
-          </ListGroupItem>
-          <ListGroupItem className="border-0 px-0">
-            <h5> Service charge </h5>
-            <span>Rs.{serviceFee}</span>
-          </ListGroupItem>
-          <ListGroupItem className="border-0 px-0 total">
-            <h5>Total</h5>
-            <span>Rs.{totalAmount}</span>
-          </ListGroupItem>
-        </ListGroup>
-        <Button
-          className="btn primary__btn w-100 mt-4"
-          onClick={handleClick}
-          type="submit"
-          disabled={!user}
-          title={!user ? "Please login to book a tour" : ""}
-        >
-          {!user ? "Login to Book" : "Book Now"}
-        </Button>
-      </div>
+        <div className="booking__botton">
+          <ListGroup>
+            <ListGroupItem className="border-0 px-0">
+              <h5>{details.guestSize} traveler{Number(details.guestSize) === 1 ? "" : "s"}</h5>
+              <span>₹{(Number(price) * Number(details.guestSize)).toLocaleString("en-IN")}</span>
+            </ListGroupItem>
+            <ListGroupItem className="border-0 px-0">
+              <h5>Service fee</h5>
+              <span>₹{BOOKING_SERVICE_FEE.toLocaleString("en-IN")}</span>
+            </ListGroupItem>
+            {discountAmount > 0 && <ListGroupItem className="border-0 px-0">
+              <h5>Coupon discount</h5>
+              <span>−₹{discountAmount.toLocaleString("en-IN")}</span>
+            </ListGroupItem>}
+            <ListGroupItem className="border-0 px-0 total">
+              <h5>Total</h5>
+              <span>₹{totalAmount.toLocaleString("en-IN")}</span>
+            </ListGroupItem>
+          </ListGroup>
+          <Button
+            className="btn primary__btn w-100 mt-4"
+            type={user ? "submit" : "button"}
+            onClick={!user ? () => navigate("/login") : undefined}
+            disabled={saving}
+          >
+            {!user ? "Login to request" : saving ? "Sending request…" : "Request this trip"}
+          </Button>
+        </div>
+      </Form>
     </div>
   );
 };

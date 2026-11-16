@@ -65,6 +65,39 @@
     margin-left: 5px;
     font-weight: 500;
 }
+.login__form .auth-error{
+    color: #7d1717;
+    font-size: .82rem;
+    margin: .5rem 0 0;
+}
+.login__form .auth-success{
+    color: #c9f7d8;
+    font-size: .82rem;
+    margin: .5rem 0 0;
+}
+.login__form .form-group,
+.login__form .mb-3{
+    position: relative;
+}
+.password-visibility-toggle{
+    background: transparent;
+    border: 0;
+    color: #526579;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 5px;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.password-visibility-toggle:focus-visible{
+    border-radius: 4px;
+    outline: 2px solid #ffa726;
+}
+.login__form input[id="password"]{
+    padding-right: 42px;
+}
 @media (max-width: 768px) {
   .login__img {
     display: none; 

@@ -6,22 +6,33 @@ const useFetch = (url) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
+      setData(null);
       try {
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
-        }
+        const res = await fetch(url, { signal: controller.signal });
         const result = await res.json();
-        setData(result.data || result); // Fallback to result if data is not present
+        if (!res.ok) {
+          throw new Error(result.message || `Failed to fetch data: ${res.status} ${res.statusText}`);
+        }
+        if (active) setData(result.data ?? result);
       } catch (err) {
-        setError(err.message || "Something went wrong");
+        if (err.name !== "AbortError" && active) {
+          setError(err.message || "Something went wrong");
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchData();
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [url]);
 
   return { data, error, loading };

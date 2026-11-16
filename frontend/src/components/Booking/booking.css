@@ -509,3 +509,64 @@
         margin-top: 0.75rem;
     }
 }
+
+.booking__info-form {
+    border-radius: 16px;
+}
+
+.booking__info-form > h5 {
+    color: #173a30;
+    font-weight: 650;
+    margin-bottom: 1rem;
+}
+
+.booking__info-form input:disabled,
+.booking__info-form select:disabled {
+    background: #f5f6f3;
+    cursor: not-allowed;
+}
+
+.booking__info-form select {
+    background: #fff;
+    border: 1px solid rgb(229, 231, 235);
+    border-radius: .5rem;
+    color: var(--heading-color);
+    font-size: 1rem;
+    min-width: 0;
+    padding: .5rem;
+    width: 100%;
+}
+
+.booking__payment-note {
+    align-items: flex-start;
+    background: #f0f5f0;
+    border-radius: 10px;
+    color: #476253;
+    display: flex;
+    gap: 9px;
+    margin: 12px 0;
+    padding: 12px;
+}
+
+.booking__payment-note i {
+    color: #1d4b3b;
+    font-size: 17px;
+}
+
+.booking__payment-note p {
+    font-size: 11px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.booking__coupon-control { display: flex; gap: 8px; margin: 12px 0 6px; }
+.booking__coupon-control input { background: #fff; border: 1px solid #dfe5df; border-radius: 8px; flex: 1; min-width: 0; padding: 9px 10px; }
+.booking__coupon-control .btn { flex: 0 0 auto; font-size: 11px; }
+.booking__coupon-success { color: #1d5a48; font-size: 11px; margin: 5px 0 10px; }
+.booking__error {
+    background: #fff0ed;
+    border-radius: 8px;
+    color: #a53d2a;
+    font-size: 12px;
+    padding: 10px 12px;
+}

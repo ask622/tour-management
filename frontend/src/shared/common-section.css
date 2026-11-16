@@ -1,33 +1,36 @@
 .common__section{
-    background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),url(../assets//images/tour.jpg);
-    height: 300px;
+    background: linear-gradient(90deg, rgba(13, 37, 29, .72), rgba(13, 37, 29, .28)), url(../assets/images/tour.jpg) center 48% / cover;
+    height: 285px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    
+    justify-content: flex-start;
 }
 .common__section h1{
-    font-size: 2.5rem;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
     color: #fff;
+    font-weight: 650;
+    letter-spacing: -1.8px;
+    margin: 0;
+    max-width: 650px;
 }
 
 /* ============ MOBILE RESPONSIVENESS ============ */
 @media (max-width: 768px) {
     .common__section {
-        height: 200px;
+        height: 230px;
     }
 
     .common__section h1 {
-        font-size: 1.8rem;
+        font-size: 2.2rem;
     }
 }
 
 @media (max-width: 480px) {
     .common__section {
-        height: 150px;
+        height: 190px;
     }
 
     .common__section h1 {
-        font-size: 1.2rem;
+        font-size: 1.8rem;
     }
 }

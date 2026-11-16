@@ -1,66 +1,72 @@
 import React from "react";
 import "../styles/home.css";
 import { Container, Row, Col } from "reactstrap";
+import { Link } from "react-router-dom";
 
 import heroImg from "../assets/images/hero-img01.jpg";
 import heroImg02 from "../assets/images/hero-img02.jpg";
-import heroVideo from "../assets/images/hero-video.mp4";
-import worldImg from "../assets/images/world.png";
 import Subtitle from "./../shared/Subtitle";
 import SearchBar from "../shared/SearchBar";
 import ServiceList from "../services/ServiceList";
 import FeaturedTourList from "../components/Featured-tours/FeaturedTourList";
+import FeaturedDestinations from "../components/Featured-tours/FeaturedDestinations";
 import experienceImg from "../assets/images/experience.png";
 import MasonryImageGallery from "../components/image-gallery/MasonryImageGallery";
 import Testimonials from "../components/Testimonial/Testimonials";
 import UttarakhandTour from "./UttarakhandTour";
 import "../styles/uttrakhnad.css"
+import useFetch from "../hooks/useFatch";
+import { BASE_URL } from "../utils/config";
 
 
 import Newsletter from "../shared/Newsletter";
 const Home = () => {
+  const { data: homeContent } = useFetch(`${BASE_URL}/api/v1/site-content/home`);
+  const content = homeContent || {};
+  const headingLines = (content.heroHeading || "Discover Your\nNext Adventure").split("\n");
   return (
     <>
-      {/* ========================hero section statr======================== */}
-
-      <section>
+      <section className="home-hero-section">
         <Container>
-          <Row>
-            <Col lg="5">
-              <div className="hero__content ">
-                <div className="hero__subtitle d-flex align-item-center">
-                  <Subtitle subtitle={"Know Before You Go"} />
-                  <img src={worldImg} alt="" />
-                </div>
-                <h1>
-                  Traveling opens the door to creating
-                  <span className="highlight">Memories</span>
-                </h1>
-                <p>
-                Plan your journey with ease – explore destinations, book stays, and enjoy hassle-free travel, all in one place!
-                </p>
+          <div className="home-hero">
+            <div className="home-hero__copy">
+              <span className="home-hero__eyebrow"><i className="ri-compass-3-line" /> YATRAVENTURE <span>•</span> UTTARAKHAND</span>
+              <h1>{headingLines.map((line, index) => <React.Fragment key={`${line}-${index}`}>{index === 1 ? <em>{line}</em> : line}{index < headingLines.length - 1 && <br />}</React.Fragment>)}</h1>
+              <p>{content.heroDescription || "From quiet Himalayan mornings to river-side adventures, discover journeys made for the way you love to travel."}</p>
+              <div className="home-hero__actions">
+                <Link to="/tours" className="home-hero__cta">Explore journeys <i className="ri-arrow-right-line" /></Link>
+                <span><i className="ri-shield-check-line" /> Easy, secure booking</span>
               </div>
-            </Col>
-            <Col lg="2">
-              <div className="hero__img-box">
-                <img src={heroImg} alt="" />
+              <div className="home-hero__promise">
+                <span><i className="ri-map-pin-line" /> Local experiences</span>
+                <span><i className="ri-user-heart-line" /> Thoughtful journeys</span>
               </div>
-            </Col>
-            <Col lg="2">
-              <div className="hero__img-box mt-4">
-                <video src={heroVideo} alt="" controls />
+            </div>
+            <div className="home-hero__visual" aria-label="Travel photography from Uttarakhand">
+              <div className="home-hero__photo home-hero__photo--main">
+                <img src={content.heroImage || heroImg} alt="A memorable travel destination" />
               </div>
-            </Col>
-            <Col lg="2">
-              <div className="hero__img-box mt-5">
-                <img src={heroImg02} alt="" />
+              <div className="home-hero__photo home-hero__photo--side">
+                <img src={content.heroImageSecondary || heroImg02} alt="Mountain landscape in Uttarakhand" />
               </div>
-            </Col>
+              {content.promotionalBanner && <div className="home-promotion-banner"><span>{content.promotionalBanner}</span><Link to="/tours">Explore tours <i className="ri-arrow-right-line" /></Link></div>}
+              <div className="home-hero__place-card">
+                <span>YOUR NEXT CHAPTER</span>
+                <strong>Somewhere<br />in the mountains.</strong>
+                <i className="ri-arrow-up-right-line" aria-hidden="true" />
+              </div>
+              <div className="home-hero__stamp"><i className="ri-sun-line" /><span>TAKE<br />THE<br />SCENIC<br />ROUTE</span></div>
+            </div>
+          </div>
+          <div className="home-hero__search">
+            <div className="home-hero__search-heading">
+              <span>PLAN YOUR NEXT ESCAPE</span>
+              <p>Where would you like to go?</p>
+            </div>
             <SearchBar />
-          </Row>
+          </div>
         </Container>
       </section>
-      {/* ==========================hero section end================================ */}
       <section>
         <Container>
           <Row>
@@ -81,10 +87,11 @@ const Home = () => {
               <Subtitle subtitle={"Explore"} />
               <h2 className="featured__tour-title">Our Featured Tour</h2>
             </Col>
-            <FeaturedTourList />
+            <FeaturedTourList tourIds={content.featuredTourIds || []} />
           </Row>
         </Container>
       </section>
+      <FeaturedDestinations destinationIds={content.featuredDestinationIds || []} />
       {/* ========================feature tour section end======================= */}
 
       {/* ========================experience section start======================= */}
@@ -179,7 +186,7 @@ const Home = () => {
             </h2>
             </Col>
             <Col lg='12'>
-            <Testimonials/>
+            <Testimonials items={content.testimonials} />
             </Col>
           </Row>
         </Container>

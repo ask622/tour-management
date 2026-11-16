@@ -182,3 +182,23 @@
 
 
 Green contribution test from VS Code
+
+## Admin dashboard
+
+The admin dashboard is available at `/admin`, with administrator-only sign-in at `/admin/login`. The first administrator is created through `/admin/setup`; this one-time setup is disabled unless `ADMIN_SETUP_KEY` is configured on the backend, and it closes after an admin account exists.
+
+1. In `backend/.env`, add a randomly generated `ADMIN_SETUP_KEY` of at least 32 characters. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` and keep it private.
+2. Set `MONGO_URI`, `JWT_SECRET_KEY`, and `FRONTEND_URL` in the backend environment. `FRONTEND_URL` must be the exact website origin in production. Restart the backend and open `http://localhost:3000/admin/setup` (or your deployed frontend's `/admin/setup` URL).
+3. Create the administrator, then sign in at `/admin/login`.
+
+The dashboard currently provides database-backed overview analytics, booking status and internal-note management, tour CRUD, user search/edit/account activation/booking history, and review moderation. Admin APIs require the signed HTTP-only login cookie and enforce the admin role on the server. Passwords and password hashes are never returned by user APIs. Revenue includes only payment records verified by a provider; the current booking flow does not integrate an online payment provider.
+
+The catalog also supports managed categories and destinations, coupons, enquiries, and CMS/site settings. About-page team members and home testimonials are editable through the CMS JSON editor. Admin sub-roles and multi-image file uploads are not implemented; tour galleries can be configured with image URLs.
+
+## Traveler accounts and booking APIs
+
+Travelers can manage their profile and booking requests at `/account`. The account page uses `GET /api/bookings/mine` for the signed-in user's history and `PATCH /api/bookings/:id/cancel` to cancel their own pending requests; confirmed or completed bookings require contacting the team. Booking and profile endpoints require the HTTP-only authentication cookie.
+
+Tour discovery supports destination/title search, date and traveler availability, category, price, duration, rating, and sort filters. Newsletter sign-ups are stored through `POST /api/v1/newsletter/subscribe`; contact enquiries use `POST /api/v1/enquiries`.
+
+For local development, run the API from `backend` and the website from `frontend`. Admin CRUD requires MongoDB to be connected; the sample tours shown when MongoDB is unavailable are read-only. Keep all backend environment values private and never place them in frontend code.

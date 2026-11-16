@@ -1,9 +1,10 @@
 import express from "express";
-import { createReview } from "../controllers/reviewController.js";
+import { createReview, getTourReviews } from "../controllers/reviewController.js";
+import { verifyToken } from "../utils/verifyToken.js";
 
 const router = express.Router();
 
-// POST request to create a review
-router.post("/:tourId", createReview);
+router.get("/:tourId", getTourReviews);
+router.post("/:tourId", verifyToken, createReview);
 
 export default router;

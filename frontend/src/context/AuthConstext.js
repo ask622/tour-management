@@ -19,7 +19,11 @@ const AuthReducer = (state, action) => {
         case 'LOGIN_START':
             return { ...state, isFetching: true, error: null };
         case 'LOGIN_SUCCESS':
+            localStorage.setItem('user', JSON.stringify(action.payload));
             return { ...state, user: action.payload, isFetching: false };
+        case 'PROFILE_UPDATE':
+            localStorage.setItem('user', JSON.stringify(action.payload));
+            return { ...state, user: action.payload };
         case 'LOGIN_FAILURE':
             return { ...state, isFetching: false, error: action.payload };
         case 'LOGOUT':

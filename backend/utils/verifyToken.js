@@ -1,20 +1,37 @@
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+import User from "../models/User.js";
 
-export const verifyToken = (req, res, next) => {
-  const token = req.cookies.access_token; // Token from cookies
+export const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.access_token;
 
   if (!token) {
     return res.status(401).json({ success: false, message: "You are not authenticated!" });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
-    if (err) {
-      return res.status(403).json({ success: false, message: "Token is invalid!" });
-    }
+  let user;
+  try {
+    user = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  } catch (err) {
+    return res.status(403).json({ success: false, message: "Token is invalid!" });
+  }
 
-    req.user = user; // Attach user info to request
-    next();
-  });
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ success: false, message: "Account access cannot be verified while the database is unavailable" });
+  }
+
+  let account;
+  try {
+    account = await User.findById(user.id).select("isActive").lean();
+  } catch (err) {
+    console.error("Account status verification failed:", err.message);
+    return res.status(503).json({ success: false, message: "Account access could not be verified" });
+  }
+  if (!account || account.isActive === false) {
+    return res.status(401).json({ success: false, message: "This account is unavailable" });
+  }
+  req.user = user;
+  return next();
 };
 
 export const verifyUser = (req, res, next) => {

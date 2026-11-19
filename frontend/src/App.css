@@ -5,9 +5,10 @@
   --primary-color: #ffa726;
   --secondary-color: #102a43;
   --heading-color: #102a43;
-  --text-color: #dddddd;
+  --text-color: #6e7074;
   --font-name: "Montserrat", sans-serif;
   --subtitle-font-name: "Island Moments", cursive;
+  --tittle-color:white;
 }
 
 * {
@@ -83,5 +84,5 @@ ul {
   border-radius: 50px;
   font-weight: 500;
   font-size: 1.7rem;
-  color: var( --text-color);
+  color: var(--tittle-color);
 }
